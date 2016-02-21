@@ -4,7 +4,7 @@ var ejs = require('ejs'),
 	path = require('path'),
 	marked = require('marked');
 
-var _config = yaml.safeLoad(fs.readFileSync(path.join(__dirname, './_config.yml'), 'utf8')),
+var _config = yaml.safeLoad(fs.readFileSync(path.join(__dirname, './config.yml'), 'utf8')),
 	markdown_content = fs.readFileSync(path.join(__dirname, './source/README.md'), 'utf8'),
 	str = fs.readFileSync(path.join(__dirname, './theme/layout/index.ejs'), 'utf8');
 
