@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Judgegirl.GitHub.io : Tutorial: How to install JudgeGirl Online Judge">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Judgegirl.GitHub.io</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/JudgeGirl">View on GitHub</a>
+
+          <h1 id="project_title">Judgegirl.GitHub.io</h1>
+          <h2 id="project_tagline">Tutorial: How to install JudgeGirl Online Judge</h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="judge-girl-批改娘簡易安裝手冊" class="anchor" href="#judge-girl-%E6%89%B9%E6%94%B9%E5%A8%98%E7%B0%A1%E6%98%93%E5%AE%89%E8%A3%9D%E6%89%8B%E5%86%8A" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Judge Girl 批改娘簡易安裝手冊</h1>
+
+<h2>
+<a id="準備工作" class="anchor" href="#%E6%BA%96%E5%82%99%E5%B7%A5%E4%BD%9C" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>準備工作</h2>
+
+<p>一台 Linux 作業系統，最好是 Ubuntu。(CentOS 和 Debian 可能會沒有建立沙盒所需要的新版套件)</p>
+
+<h2>
+<a id="起步" class="anchor" href="#%E8%B5%B7%E6%AD%A5" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>起步</h2>
+
+<p>假定現在給一台 Ubuntu 14.04 的主機，先增加兩個使用者帳號。</p>
+
+<pre><code># adduser judgesister
+# adduser butler
+</code></pre>
+
+<p><code>judgesister</code> 作為前端網頁和發送測試工作，<code>butler</code> 作為運行測試工作。從關係上來看，<code>butler</code> 允許在不同主機上運行。</p>
+
+<h2>
+<a id="安裝套件" class="anchor" href="#%E5%AE%89%E8%A3%9D%E5%A5%97%E4%BB%B6" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>安裝套件</h2>
+
+<pre><code># apt-get install cgroup-tools
+# apt-get install build-essential nodejs npm
+# apt-get install mysql-server
+</code></pre>
+
+<ul>
+<li>
+<code>cgroup-tools</code> 為 Ubuntu 上 cgroup 的相關套件，沙盒需要 <code>/sys/fs/cgroup/memory/</code>。</li>
+<li>
+<code>build-essential nodejs npm</code> 評測系統後台需使用 gcc 編譯器、前端使用 nodejs 和 npm 套件管理。</li>
+<li>
+<code>mysql-server</code> 資料庫系統使用 MySQL。</li>
+</ul>
+
+<h2>
+<a id="安裝模組" class="anchor" href="#%E5%AE%89%E8%A3%9D%E6%A8%A1%E7%B5%84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>安裝模組</h2>
+
+<pre><code>$ cd /home/judgesister/
+$ git clone https://github.com/JudgeGirl/JudgeNode
+$ git clone https://github.com/JudgeGirl/Judge-receiver
+$ git clone https://github.com/JudgeGirl/Judge-sender
+$ git clone https://github.com/JudgeGirl/Judge-MySQL
+$ git clone https://github.com/JudgeGirl/Judge-template
+</code></pre>
+
+<p>系統大致上分成四個部份 </p>
+
+<ul>
+<li>JudgeNode (前端網頁)</li>
+<li>Judge-sender (發送測試工作)</li>
+<li>Judge-receiver (運行測試工作)</li>
+<li>Judge-MySQL (網站資料庫系統)</li>
+</ul>
+
+<h3>
+<a id="judge-mysql" class="anchor" href="#judge-mysql" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Judge-MySQL</h3>
+
+<p>記得一開始安裝 <code>mysql-server</code> 的 root 密碼，皆下來創立專屬於 Judge Girl 專用的 database。建立一個 <code>deploy_mySQL.sh</code>，檔案內容如下：</p>
+
+<pre><code>$ cat deploy_mySQL.sh
+#!/bin/bash
+
+EXPECTED_ARGS=3
+E_BADARGS=65
+MYSQL=`which mysql`
+
+Q1="CREATE DATABASE IF NOT EXISTS $1;"
+Q2="GRANT USAGE ON *.* TO $2@localhost IDENTIFIED BY '$3';"
+Q3="GRANT ALL PRIVILEGES ON $1.* TO $2@localhost;"
+Q4="FLUSH PRIVILEGES;"
+SQL="${Q1}${Q2}${Q3}${Q4}"
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: $0 dbname dbuser dbpass"
+  exit $E_BADARGS
+fi
+
+$MYSQL -uroot -p -e "$SQL"
+</code></pre>
+
+<p>接著，將其變成執行檔後，輸入資料庫名稱、使用者帳號和密碼。</p>
+
+<pre><code>$ chmod +x deploy_mySQL.sh
+$ ./deploy_mysql.sh &lt;database&gt; &lt;user&gt; &lt;password&gt;
+</code></pre>
+
+<p>接著進入 MySQL，貼上 <code>./Judge-MySQL/CREATE_TABLE.sql</code> 的內容，</p>
+
+<pre><code>$ mysql -u root -p
+mysql &gt;&gt; use judgegirl
+mysql &gt;&gt; &lt;copy Judge-MySQL/CREATE_TABLE.sql&gt;
+</code></pre>
+
+<p>建立約 11 個 Table，可以利用下述指令確定是否完成。</p>
+
+<pre><code>mysql &gt;&gt; use judgegirl
+mysql &gt;&gt; show tables
+</code></pre>
+
+<h3>
+<a id="judge-sender" class="anchor" href="#judge-sender" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Judge-sender</h3>
+
+<p>定時偵測資料庫中還沒有測試的原始碼，抓取後將測資和原始碼一同丟到遠端機器上進行測試，遠端機器也可以是自身，遠端機器需按照 Judge-receiver 的步驟構造。</p>
+
+<p>由於 MySQL 不支援 python 3，但支持 python 2，安裝額外套件使得 MySQL 得以在 python 3 上運行。首先，安裝 <code>python3-dev</code>，等下 python3 安裝過程中會需要相關的套件。</p>
+
+<pre><code># apt-get install python3-dev
+</code></pre>
+
+<p>接著，按照網路提供的<a href="http://stackoverflow.com/questions/12031151/how-to-install-mysqldb-with-python-3-2">方案</a> 解決。安裝時特別小心 python3 的 working directory，務必到該目錄下進行安裝。</p>
+
+<pre><code>$ cd install_tutorial
+$ python distribute_setup.py
+$ curl -L https://github.com/PyMySQL/PyMySQL/tarball/pymysql-0.6 | tar xz
+$ cd PyMySQL-PyMySQL-7c86923/
+$ python3 setup.py install
+</code></pre>
+
+<ul>
+<li>如果出現 <code>setuptools not found</code> <a href="https://github.com/JudgeGirl/Judge-sender/issues/5">issue</a>
+</li>
+</ul>
+
+<pre><code>wget https://bootstrap.pypa.io/ez_setup.py -O - | python3
+</code></pre>
+
+<ul>
+<li>如果出現 <code>mysql_config not found</code> <a href="https://github.com/JudgeGirl/Judge-sender/issues/4">issue</a><br>
+</li>
+</ul>
+
+<pre><code>apt-get install libmysqlclient-dev
+</code></pre>
+
+<p>由於是遠端遙控，目前採用 ssh 遠端登入，要使用不需要密碼的方式登入遠端，假設從 <code>root@a.a.a.a</code> 登入到遠端的 <code>butler@b.b.b.b</code> 上 (意即用 root 身分執行 <code>./Judge-sender/start</code> 運行)，如果在同一台主機，直接 <code>root$ cp ~/.ssh/id_rsa.pub /home/butler/.ssh/authorized_keys</code> 即可。</p>
+
+<pre><code>root@a.a.a.a# ssh-keygen -t rsa
+root@a.a.a.a# scp ~/.ssh/id_rsa.pub butler@b.b.b.b:~/.ssh/
+root@a.a.a.a# ssh butler@b.b.b.b
+butler@b.b.b.b$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+</code></pre>
+
+<h3>
+<a id="judge-receiver" class="anchor" href="#judge-receiver" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Judge-receiver</h3>
+
+<p>若使用同一台電腦，將剛剛安裝的 Judge-receiver 下的檔案編譯後，丟到 butler 的家目錄，並且確定檔案權限。</p>
+
+<pre><code>$ make -C /home/judgesister/Judge-receiver/slave/ clean
+$ make -C /home/judgesister/Judge-receiver/slave/
+$ cp -r /home/judgesister/Judge-receiver/slave/* /home/butler
+# chown butler:butler /home/butler/butler
+# chown butler:butler /home/butler/tiger
+# chmod +s /home/butler/sandbox
+</code></pre>
+
+<p>例如要遠端連到 <code>butler@a.a.a.a</code>，在 butler 的家目錄配置如下，權限部份請特別小心 sandbox 的執行檔，必須 <code>chmod +s sandbox</code>。</p>
+
+<pre><code>root@supermicro:/home/butler# ls -l
+total 832
+-rwxr-xr-x 1 butler butler    770 Jan 23 16:06 butler
+-rw-r--r-- 1 root   root      305 Jan 23 16:06 config.h
+-rw-r--r-- 1 root   root      274 Jan 23 16:06 GNUmakefile
+-rw-rw-r-- 1 root   root        5 Feb 18 00:00 log
+-rwsr-sr-x 1 root   root    18457 Jan 23 16:06 sandbox
+-rw-r--r-- 1 root   root     3281 Jan 23 16:06 sandbox.c
+drwxr-xr-x 2 root   root     4096 Sep 12 19:06 script
+-rw-r--r-- 1 root   root      106 Jan 23 16:06 test.c
+-rwxr-xr-x 1 butler butler 795864 Jan 23 16:06 tiger
+-rw-r--r-- 1 root   root      449 Jan 23 16:06 tiger.c
+</code></pre>
+
+<pre><code>root@supermicro:/home/butler# tree
+.
+├── butler
+├── config.h
+├── GNUmakefile
+├── log
+├── sandbox
+├── sandbox.c
+├── script
+│   ├── fstab
+│   ├── mount
+│   └── umount
+├── test.c
+├── tiger
+└── tiger.c
+</code></pre>
+
+<p>編輯一下 <code>.bashrc</code> 的環境，等下遠端過來操作沙盒時，需要直接當作指令執行 butler 家目錄下編譯好的執行檔</p>
+
+<pre><code>root@supermicro:/home/butler# vim .bashrc
+</code></pre>
+
+<p>在 <code>.bashrc</code> 加入</p>
+
+<pre><code>export PATH=$HOME:$PATH
+</code></pre>
+
+<p>更新一下剛剛的設定</p>
+
+<pre><code>root@supermicro:/home/butler# source .bashrc
+</code></pre>
+
+<p>測試是否有成功，確定 <code>echo $PATH</code> 中出現 <code>/home/butler</code>。</p>
+
+<pre><code>root@supermicro:/home/butler# su butler
+butler@supermicro:~$ echo $PATH
+/home/butler:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+</code></pre>
+
+<h4>
+<a id="準備沙盒" class="anchor" href="#%E6%BA%96%E5%82%99%E6%B2%99%E7%9B%92" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>準備沙盒</h4>
+
+<ul>
+<li>確定 server 上有 <code>cgroup</code> 功能，在某些舊 kernel 並沒有我們需要限制沙盒的功能 (目前確定部分版本的 CentOS 和 Debian 沒有支持)。確定 <code>memory.limit_in_bytes</code> 存在在清單中。(可以使用 <code>$ mount</code> 找到 <code>cgroup</code> 在哪個資料夾。)</li>
+</ul>
+
+<pre><code>$ ls /sys/fs/cgroup/memory/
+</code></pre>
+
+<ul>
+<li>在根目錄建造沙盒 <code>/sandbox</code>
+</li>
+</ul>
+
+<pre><code>root@supermicro:/# ls -l
+total 104
+drwxr-xr-x  13 root root  4096 Feb 25  2015 sandbox
+</code></pre>
+
+<ul>
+<li>建立 sandbox 資料夾目錄，到 <code>Judge-receiver/scripts</code> 目錄下進行構造 (否則 python 安裝時的 working directory 會造成錯誤)，</li>
+</ul>
+
+<pre><code>root $ cd Judge-receiver/scripts
+root $ ./prepare
+root $ ./mount
+</code></pre>
+
+<p>在最後一行的指令 <code>./mount</code>，每一次主機重新開啟 (例如斷電重開職主機後)，要重新執行這條指令，否則測試結果會是一整排 Runtimer Error。將跟目錄下的這些資料夾 mount 到 sandbox 下。結果大致如下：  </p>
+
+<pre><code>root@supermicro:/sandbox# tree -L 2
+sandbox/
+├── bin
+├── dev
+├── etc
+├── lib
+├── lib64
+├── opt
+├── proc
+├── sandbox/
+|   ├── app
+|   └── ws
+├── sys
+├── tmp
+└── usr
+</code></pre>
+
+<ul>
+<li>確認 <code>sandbox/sandbox/app</code>、<code>sandbox/sandbox/ws</code> 的權限配置如下，uid 與 gid 皆為 butler。如果權限不對，執行 <code>$ chown butler:butler app ws</code> 解決此問題。<br>
+</li>
+</ul>
+
+<pre><code>root@supermicro:/sandbox/sandbox# ls -l
+total 8
+drwxr-xr-x 2 butler butler 4096 Feb 18 00:00 app
+drwxrwxrwx 2 butler butler 4096 Feb 13 23:41 ws
+</code></pre>
+
+<h5>
+<a id="沙盒測試" class="anchor" href="#%E6%B2%99%E7%9B%92%E6%B8%AC%E8%A9%A6" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>沙盒測試</h5>
+
+<p>編譯簡單的 <code>hello.c</code>，複製到 <code>/sandbox</code> 下，並且限制時間 (second 為單位)、記憶體用量 (byte 為單位)，最後是執行的方式。如果上述測試沒有發生錯誤，順利印出 <code>Hello, World !</code> 表示沙盒部屬完成。否則可能是 mount 失敗、或者沒有順利建好資料夾。</p>
+
+<pre><code>root@ubuntu:/home/butler# gcc hello.c
+root@ubuntu:/home/butler# cp a.out /sandbox/sandbox/app/
+root@ubuntu:/home/butler# ./sandbox 1 16777216 ../app/a.out
+</code></pre>
+
+<h3>
+<a id="judgenode" class="anchor" href="#judgenode" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>JudgeNode</h3>
+
+<h4>
+<a id="安裝" class="anchor" href="#%E5%AE%89%E8%A3%9D" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>安裝</h4>
+
+<p>下載需要的套件</p>
+
+<pre><code>$ apt-get install nodejs mysql-server
+$ git clone https://github.com/JudgeGirl/JudgeNode
+$ cd JudgeNode
+$ npm install
+$ bower install
+$ gulp build
+</code></pre>
+
+<p>複製預設的設定檔案，並將資料庫帳號密碼打在 <code>_config.yml</code> 中，最後產生 https 需要的相關文件  </p>
+
+<pre><code>$ cp _DEFAULTconfig.yml _config.yml
+$ openssl genrsa -out privatekey.pem 1024
+$ openssl req -new -key privatekey.pem -out certrequest.csr
+$ openssl x509 -req -in certrequest.csr -signkey privatekey.pem -out certificate.pem
+</code></pre>
+
+<p>確定 Judge 的目錄如下所示： </p>
+
+<pre><code>root@ubuntu:/home/judgesister# tree -L 1
+.
+├── JudgeNode (可以放置別處)
+├── Judge-sender (一定要與 source, submission, testdata 位置相當)
+├── Judge-template (提供範例，可不用下載)
+├── source
+├── submission
+└── testdata
+</code></pre>
+
+<p>如果不手動建立，可以參考以下的做法建立</p>
+
+<pre><code>$ mkdir /home/judgesister/source
+$ mkdir /home/judgesister/submission
+$ mkdir /home/judgesister/testdata
+$ cp -r /home/judgesister/Judge-template/default/source/* /home/judgesister/source/
+</code></pre>
+
+<p>最後，測試用的啟動模式 <code>npm start</code> / 公開用的啟動模式 <code>./start</code>。</p>
+
+<h4>
+<a id="公開用的啟動模式" class="anchor" href="#%E5%85%AC%E9%96%8B%E7%94%A8%E7%9A%84%E5%95%9F%E5%8B%95%E6%A8%A1%E5%BC%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>公開用的啟動模式</h4>
+
+<p>網站可能會因為某些 Bug 而掛掉，若需要不斷地重新開啟，執行目錄下的 <code>./start</code> 可以每隔 10 秒嘗試重新啟動，如果要強制關閉，請按 <code>CTRL + C</code> 終止網站啟動。在這種模式下，Debug 工作會變得非常困難。</p>
+
+<pre><code>$ ./start
+</code></pre>
+
+<p>如果 <code>CTRL + C</code> 沒有反應，按照下面步驟停止前端服務。</p>
+
+<pre><code>$ root@ubuntu:/home/judgesister/JudgeNode# ps aux | grep start
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root      5671  0.0  0.0   4448   780 pts/3    S+   Feb20   0:00 /bin/sh ./start &lt;&lt;&lt;&lt;Judge-sender
+root     19296  0.0  0.0  27236  8028 pts/4    S+   12:04   0:00 python3 ./start &lt;&lt;&lt;&lt;JudgeNode
+$ kill -9 &lt;JudgeNode-PID&gt;
+</code></pre>
+
+<h2>
+<a id="加入第一道題目" class="anchor" href="#%E5%8A%A0%E5%85%A5%E7%AC%AC%E4%B8%80%E9%81%93%E9%A1%8C%E7%9B%AE" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>加入第一道題目</h2>
+
+<h3>
+<a id="網站管理員" class="anchor" href="#%E7%B6%B2%E7%AB%99%E7%AE%A1%E7%90%86%E5%93%A1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>網站管理員</h3>
+
+<p>在建立第一道題目之前，新增題目描述設定需要網站管理員，借由 <code>JudgeNode/test/workspace/adduser.js</code> 增加使用者帳號。假設要建立管理員身分，直接執行 <code>&lt;class&gt; = 0</code>。</p>
+
+<pre><code>$ cd JudgeNode/test/workspace/adduser.js
+$ node adduser.js nodejs judgegirl notpassword 0 judgegirl@judgegirl.org
+</code></pre>
+
+<p>創立好後，從前端登入後在選單中看到管理頁面，點選新增題目即可。</p>
+
+<h3>
+<a id="分類增加" class="anchor" href="#%E5%88%86%E9%A1%9E%E5%A2%9E%E5%8A%A0" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>分類增加</h3>
+
+<p>目前還沒支持前端分類管理，必須手動從 MySQL 下指令完成。假設要創立在 level 1，並且將題目放置在 domain 0，與法如下：</p>
+
+<pre><code>$ mysql -u root -p
+mysql &gt;&gt; use judgegirl
+mysql &gt;&gt; INSERT INTO levels (level, ttl, lorder) VALUES (1, 'Test', 1);
+mysql &gt;&gt; INSERT INTO level_domain (did, level) VALUES (0, 1);
+</code></pre>
+
+<p>接著，就可以進行上傳測試！</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
