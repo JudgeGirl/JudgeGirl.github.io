@@ -1,0 +1,16 @@
+site:
+  repo: Judge Girl 批改娘
+  title: Judge Girl 批改娘
+  description: '教學用線上評測系統'
+  start: 'https://github.com/JudgeGirl/JudgeNode'
+splash:
+  github:
+    user: JudgeGirl
+    repo: JudgeNode
+  social:
+  	twitter:
+    facebook: 
+menu:
+  home: https://github.com/JudgeGirl/JudgeNode
+footer:
+  text: Powered by Nodejs and Theme by Pure.CSS © 2016

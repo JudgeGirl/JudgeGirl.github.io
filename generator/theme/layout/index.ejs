@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="<%= config.site.description %>">
+
+    <title><%= config.site.repo %> | <%= config.site.title %></title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="stylesheets/layouts/marketing.css"> 
+</head>
+<body>
+
+<div class="header">
+    <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+        <a class="pure-menu-heading" href=""><%= config.site.title %></a>
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item pure-menu-selected"><a href="<%= config.menu.home %>" class="pure-menu-link">Home</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="splash-container">
+    <div class="splash">
+        <h1 class="splash-head"><%= config.site.repo %></h1>
+        <p class="splash-subhead"><%= config.site.description %></p>
+        <p>
+            <a href="<%= config.site.start  %>" class="pure-button pure-button-primary">Get Started</a>
+        </p>
+        <p>
+            <!-- GitHub Star -->
+            <iframe src="https://ghbtns.com/github-btn.html?user=<%= config.splash.github.user %>&repo=<%= config.splash.github.repo %>&type=star&count=true" frameborder="0" scrolling="0" width="110px" height="20px"></iframe>
+            <!-- GitHub fork -->
+            <iframe src="https://ghbtns.com/github-btn.html?user=<%= config.splash.github.user %>&repo=<%= config.splash.github.repo %>&type=fork&count=true" frameborder="0" scrolling="0" width="110px" height="20px"></iframe>
+            <!-- Tweet button -->
+            <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://hexo.io/" data-text="Hexo - A fast, simple &amp; powerful blog framework powered by Node.js." data-hashtags="hexo,nodejs">Tweet</a>
+            <% if (config.splash.social && config.splash.social.twitter) { %>
+                <!-- Twitter follow button -->
+                <a href="https://twitter.com/<%= config.splash.social.twitter %>" class="twitter-follow-button" data-show-count="false">Follow @<%= config.splash.social.twitter %></a>
+            <% } %>
+            <script>
+            window.twttr=(function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);t._e=[];t.ready=function(f){t._e.push(f);};return t;}(document,"script","twitter-wjs"));
+            </script>
+        </p>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div class="content">
+        <%- content %>
+    </div>
+    <div class="footer l-box is-center">
+        <%- config.footer.text %>
+    </div>
+</div>
+
+</body>
+</html>
