@@ -340,7 +340,7 @@ $ kill -9 <JudgeNode-PID>
 在建立第一道題目之前，新增題目描述設定需要網站管理員，借由 `JudgeNode/test/workspace/adduser.js` 增加使用者帳號。假設要建立管理員身分，直接執行 `<class> = 0`。
 
 ```
-$ cd JudgeNode/test/workspace/adduser.js
+$ cd JudgeNode/test/workspace
 $ node adduser.js nodejs judgegirl notpassword 0 judgegirl@judgegirl.org
 ```
 
