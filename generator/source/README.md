@@ -49,10 +49,12 @@ $ git clone https://github.com/JudgeGirl/Judge-template
 
 ### Judge-MySQL ###
 
-記得一開始安裝 `mysql-server` 的 root 密碼，皆下來創立專屬於 Judge Girl 專用的 database。建立一個 `deploy_mySQL.sh`，檔案內容如下：
+#### 安裝 ####
+
+記得一開始安裝 `mysql-server` 的 root 密碼，皆下來創立專屬於 Judge Girl 專用的 database。建立一個 `deploy_mysql.sh`，檔案內容如下：
 
 ```
-$ cat deploy_mySQL.sh
+$ cat deploy_mysql.sh
 #!/bin/bash
 
 EXPECTED_ARGS=3
@@ -77,7 +79,7 @@ $MYSQL -uroot -p -e "$SQL"
 接著，將其變成執行檔後，輸入資料庫名稱、使用者帳號和密碼。
 
 ```
-$ chmod +x deploy_mySQL.sh
+$ chmod +x deploy_mysql.sh
 $ ./deploy_mysql.sh <database> <user> <password>
 ```
 
@@ -96,6 +98,8 @@ mysql >> use judgegirl
 mysql >> show tables
 ```
 ### Judge-sender ###
+
+#### 安裝 ####
 
 定時偵測資料庫中還沒有測試的原始碼，抓取後將測資和原始碼一同丟到遠端機器上進行測試，遠端機器也可以是自身，遠端機器需按照 Judge-receiver 的步驟構造。
 
@@ -223,10 +227,9 @@ drwxr-xr-x  13 root root  4096 Feb 25  2015 sandbox
 ```
 
 * 建立 sandbox 資料夾目錄，到 `Judge-receiver/scripts` 目錄下進行構造 (否則 python 安裝時的 working directory 會造成錯誤)，
+
 ```
-root $ cd Judge-receiver/scripts
-root $ ./prepare
-root $ ./mount
+root $ cd Judge-receiver/script && ./prepare && ./mount
 ```
 
  在最後一行的指令 `./mount`，每一次主機重新開啟 (例如斷電重開職主機後)，要重新執行這條指令，否則測試結果會是一整排 Runtimer Error。將跟目錄下的這些資料夾 mount 到 sandbox 下。結果大致如下：  
@@ -274,11 +277,10 @@ root@ubuntu:/home/butler# ./sandbox 1 16777216 ../app/a.out
 
 ```
 $ apt-get install nodejs mysql-server
+$ npm install -g gulp
+$ npm install -g bower
 $ git clone https://github.com/JudgeGirl/JudgeNode
-$ cd JudgeNode
-$ npm install
-$ bower install
-$ gulp build
+$ cd JudgeNode && npm install && bower install && gulp build
 ```
 
 複製預設的設定檔案，並將資料庫帳號密碼打在 `_config.yml` 中，最後產生 https 需要的相關文件  

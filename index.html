@@ -79,8 +79,9 @@ $ git clone https://github.com/JudgeGirl/Judge-template
 <li>Judge-MySQL (網站資料庫系統)</li>
 </ul>
 <h3 id="judge-mysql">Judge-MySQL</h3>
-<p>記得一開始安裝 <code>mysql-server</code> 的 root 密碼，皆下來創立專屬於 Judge Girl 專用的 database。建立一個 <code>deploy_mySQL.sh</code>，檔案內容如下：</p>
-<pre><code>$ cat deploy_mySQL.sh
+<h4 id="安裝">安裝</h4>
+<p>記得一開始安裝 <code>mysql-server</code> 的 root 密碼，皆下來創立專屬於 Judge Girl 專用的 database。建立一個 <code>deploy_mysql.sh</code>，檔案內容如下：</p>
+<pre><code>$ cat deploy_mysql.sh
 #!/bin/bash
 
 EXPECTED_ARGS=3
@@ -101,7 +102,7 @@ fi
 
 $MYSQL -uroot -p -e &quot;$SQL&quot;
 </code></pre><p>接著，將其變成執行檔後，輸入資料庫名稱、使用者帳號和密碼。</p>
-<pre><code>$ chmod +x deploy_mySQL.sh
+<pre><code>$ chmod +x deploy_mysql.sh
 $ ./deploy_mysql.sh &lt;database&gt; &lt;user&gt; &lt;password&gt;
 </code></pre><p>接著進入 MySQL，貼上 <code>./Judge-MySQL/CREATE_TABLE.sql</code> 的內容，</p>
 <pre><code>$ mysql -u root -p
@@ -111,6 +112,7 @@ mysql &gt;&gt; &lt;copy Judge-MySQL/CREATE_TABLE.sql&gt;
 <pre><code>mysql &gt;&gt; use judgegirl
 mysql &gt;&gt; show tables
 </code></pre><h3 id="judge-sender">Judge-sender</h3>
+<h4 id="安裝">安裝</h4>
 <p>定時偵測資料庫中還沒有測試的原始碼，抓取後將測資和原始碼一同丟到遠端機器上進行測試，遠端機器也可以是自身，遠端機器需按照 Judge-receiver 的步驟構造。</p>
 <p>由於 MySQL 不支援 python 3，但支持 python 2，安裝額外套件使得 MySQL 得以在 python 3 上運行。首先，安裝 <code>python3-dev</code>，等下 python3 安裝過程中會需要相關的套件。</p>
 <pre><code># apt-get install python3-dev
@@ -188,10 +190,10 @@ total 104
 drwxr-xr-x  13 root root  4096 Feb 25  2015 sandbox
 </code></pre></li>
 <li><p>建立 sandbox 資料夾目錄，到 <code>Judge-receiver/scripts</code> 目錄下進行構造 (否則 python 安裝時的 working directory 會造成錯誤)，</p>
-<pre><code>root $ cd Judge-receiver/scripts
-root $ ./prepare
-root $ ./mount
-</code></pre><p>在最後一行的指令 <code>./mount</code>，每一次主機重新開啟 (例如斷電重開職主機後)，要重新執行這條指令，否則測試結果會是一整排 Runtimer Error。將跟目錄下的這些資料夾 mount 到 sandbox 下。結果大致如下：  </p>
+</li>
+</ul>
+<pre><code>root $ cd Judge-receiver/script &amp;&amp; ./prepare &amp;&amp; ./mount
+</code></pre><p> 在最後一行的指令 <code>./mount</code>，每一次主機重新開啟 (例如斷電重開職主機後)，要重新執行這條指令，否則測試結果會是一整排 Runtimer Error。將跟目錄下的這些資料夾 mount 到 sandbox 下。結果大致如下：  </p>
 <pre><code>root@supermicro:/sandbox# tree -L 2
 sandbox/
 ├── bin
@@ -207,9 +209,8 @@ sandbox/
 ├── sys
 ├── tmp
 └── usr
-</code></pre></li>
-<li><p>確認 <code>sandbox/sandbox/app</code>、<code>sandbox/sandbox/ws</code> 的權限配置如下，uid 與 gid 皆為 butler。如果權限不對，執行 <code>$ chown butler:butler app ws</code> 解決此問題。  </p>
-<pre><code>root@supermicro:/sandbox/sandbox# ls -l
+</code></pre><ul>
+<li>確認 <code>sandbox/sandbox/app</code>、<code>sandbox/sandbox/ws</code> 的權限配置如下，uid 與 gid 皆為 butler。如果權限不對，執行 <code>$ chown butler:butler app ws</code> 解決此問題。  <pre><code>root@supermicro:/sandbox/sandbox# ls -l
 total 8
 drwxr-xr-x 2 butler butler 4096 Feb 18 00:00 app
 drwxrwxrwx 2 butler butler 4096 Feb 13 23:41 ws
@@ -224,11 +225,10 @@ root@ubuntu:/home/butler# ./sandbox 1 16777216 ../app/a.out
 <h4 id="安裝">安裝</h4>
 <p>下載需要的套件</p>
 <pre><code>$ apt-get install nodejs mysql-server
+$ npm install -g gulp
+$ npm install -g bower
 $ git clone https://github.com/JudgeGirl/JudgeNode
-$ cd JudgeNode
-$ npm install
-$ bower install
-$ gulp build
+$ cd JudgeNode &amp;&amp; npm install &amp;&amp; bower install &amp;&amp; gulp build
 </code></pre><p>複製預設的設定檔案，並將資料庫帳號密碼打在 <code>_config.yml</code> 中，最後產生 https 需要的相關文件  </p>
 <pre><code>$ cp _DEFAULTconfig.yml _config.yml
 $ openssl genrsa -out privatekey.pem 1024
